@@ -26,7 +26,7 @@ def buckets(x):
         return "50-xx"
 
 
-def fetch_data_from_csv(path, dtype):
+def load_data_from_csv(path = "", dtype):
     global df_output
     df_output = pd.read_csv(path + "Profile/Profile.csv")
     

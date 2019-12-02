@@ -9,7 +9,7 @@ import lightgbm
 
 import pandas as pd
 import pickle
-import preprocessing
+from preprocessing import preprocess_data as preprocess
 import utils
 
 
@@ -23,11 +23,13 @@ class Model1:
         pass
 
     def fetch_face_data(self):
-        df_face, df_output = utils.load_data_from_csv(dtype="face")
+        df_face, _ = utils.load_data_from_csv(dtype="face")
+        df_face = preprocess(df_face, dtype="face")
         return df_face
     
     def fetch_text_data(self):
-        df_text, df_output = utils.load_data_from_csv(dtype="text")
+        df_text, _ = utils.load_data_from_csv(dtype="text")
+        df_text = preprocess(df_text, dtype="text")
         return df_text
     
     def fetch_relation_data(self):

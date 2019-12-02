@@ -26,20 +26,41 @@ def buckets(x):
         return "50-xx"
 
 
-def fetch_data_from_csv(path):
+def fetch_data_from_csv(path, dtype):
     global df_output
-    df_face = pd.read_csv(path + "Image/oxford.csv")
     df_output = pd.read_csv(path + "Profile/Profile.csv")
-    df_liwc = pd.read_csv(path + "Text/liwc.csv")
-    df_nrc = pd.read_csv(path + "Text/nrc.csv")
-    df_relation = pd.read_csv(path + "Relation/Relation.csv")
+    
+    if dtype == "face":
+        df_face = pd.read_csv(path + "Image/oxford.csv")
+        df_face = pd.merge(df_face, df_output, left_on="userId", right_on="userid", how="outer")
 
-    # Merge with df_output to get labels on user_id..
-    df_face = pd.merge(df_face, df_output, left_on="userId", right_on="userid")
-    df_liwc = pd.merge(df_liwc, df_nrc, left_on="userId", right_on="userId")
-    df_text = pd.merge(df_liwc, df_output, left_on="userId", right_on="userid")
-    return df_text, df_face, df_relation, df_output
+        # Dropping duplicate face_ids
+        df_face.drop_duplicates(subset ="userId", keep = "first", inplace = True)
 
+        # Filling mean values for users with no face
+        df_face.fillna(df_face.mean(), inplace=True)
+
+        return df_face, df_output
+
+    elif dtype == "text"
+        df_liwc = pd.read_csv(path + "Text/liwc.csv")
+        df_nrc = pd.read_csv(path + "Text/nrc.csv")
+
+        # Merging nrc with liwc, because individually nrc doesnt seem to perform well.
+        df_liwc = pd.merge(df_liwc, df_nrc, left_on="userId", right_on="userId")
+
+        df_text = pd.merge(df_liwc, df_output, left_on="userId", right_on="userid")
+        return df_text, df_output
+    
+    elif dtype == "relation"
+        df_relation = pd.read_csv(path + "Relation/Relation.csv")
+
+        # Cant merge with outputs here because it is not tidy data.
+        return df_relation, df_output
+
+    else:
+        raise ValueError("Invalid dtype - Should be one of (face, text, relation)")
+    
 
 # clean irrelevant columns in data
 def clean_dataframe(df):
@@ -56,8 +77,7 @@ def get_transformed_relation(df_relation, min_likes):
     new_df_pivot[new_df_pivot.notna()] = 1
     new_df_pivot = new_df_pivot.fillna(0)
     new_df_pivot = new_df_pivot.reset_index()
-    df_relation_matrix = pd.merge(new_df_pivot, df_output, left_on="userid", right_on="userid")
-    return df_relation_matrix
+    return new_df_pivot
 
 
 # Extract outputs from merged values

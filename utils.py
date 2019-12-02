@@ -26,7 +26,7 @@ def buckets(x):
         return "50-xx"
 
 
-def load_data_from_csv(path = "", dtype):
+def load_data_from_csv(dtype, path = "./"):
     global df_output
     df_output = pd.read_csv(path + "Profile/Profile.csv")
     
@@ -42,7 +42,7 @@ def load_data_from_csv(path = "", dtype):
 
         return df_face, df_output
 
-    elif dtype == "text"
+    elif dtype == "text":
         df_liwc = pd.read_csv(path + "Text/liwc.csv")
         df_nrc = pd.read_csv(path + "Text/nrc.csv")
 
@@ -52,7 +52,7 @@ def load_data_from_csv(path = "", dtype):
         df_text = pd.merge(df_liwc, df_output, left_on="userId", right_on="userid")
         return df_text, df_output
     
-    elif dtype == "relation"
+    elif dtype == "relation":
         df_relation = pd.read_csv(path + "Relation/Relation.csv")
 
         # Cant merge with outputs here because it is not tidy data.

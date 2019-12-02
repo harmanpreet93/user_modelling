@@ -1,5 +1,3 @@
-
-
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.linear_model import SGDClassifier
@@ -13,10 +11,10 @@ import preprocessing
 import utils
 
 
-class Model1:
+class Model2:
     '''
-    This class is used to code the first approach in the presentation
-    of using each data source for every challenge.
+    This class is used to code the second approach in the presentation
+    of where we fuse data sources or the outputs together
     '''
 
     def __init__(self):

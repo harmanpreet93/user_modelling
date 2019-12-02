@@ -1,7 +1,7 @@
 
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
-from sklear.linear_model import SGDClassifier
+from sklearn.linear_model import SGDClassifier
 from sklearn.multioutput import MultiOutputRegressor
 from xgboost import XGBClassifier, XGBRegressor
 import lightgbm

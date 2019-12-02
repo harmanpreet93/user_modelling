@@ -10,11 +10,12 @@ import pickle
 import preprocessing
 import utils
 
+from typing import List
 
-class Model2:
+class Model2EarlyFusion:
     '''
     This class is used to code the second approach in the presentation
-    of where we fuse data sources or the outputs together
+    of where we fuse data sources together
     '''
 
     def __init__(self):
@@ -48,18 +49,23 @@ class Model2:
         df_n2v = ""
         return df_n2v
 
+    def combine_features(self, data: List):
+        '''
+        Combining features for early fusion.. 
+        '''
+        for i in data:
+            df += pd.merge(i)
+        return combined_df
 
-def build_model_and_evaluate(data, target, classifier="XGB"):
-    model = Model1()
+    def combine_outputs():
+        pass
+
+
+
+def build_model_and_evaluate(data: List[str], target: str, classifier="XGB"):
+    model = Model2EarlyFusion()
     
-    if data == "face":
-        df_X = model.fetch_face_data()
-    elif data == "text":
-        df_X = model.fetch_text_data()
-    elif data == "relation":
-        df_X = model.fetch_relation_data()
-    else:
-        raise ValueError("Incorrect data format")
+    df_X = combine_features(data)
 
     X, y = utils.extract_data(df_X, label=target)
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state = 2)
@@ -78,16 +84,10 @@ def build_model_and_evaluate(data, target, classifier="XGB"):
 
 
 def build_model_and_evaluate_rms(data, regressor="XGB"):
-    model = Model1()
+    model = Model2EarlyFusion()
     
-    if data == "face":
-        df_X = model.fetch_face_data()
-    elif data == "text":
-        df_X = model.fetch_text_data()
-    elif data == "relation":
-        df_X = model.fetch_relation_data()
-    else:
-        raise ValueError("Incorrect data format")
+    df_X = combine_features(data)
+
 
     X, y = utils.extract_data(df_X, label="personality")
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state = 2)
@@ -121,51 +121,72 @@ def build_model_and_evaluate_rms(data, regressor="XGB"):
 
 if __name__ == "__main__":
 
-    ## Classification Tasks
+    ## Classification Tasks for combined datasets
 
-    accuracy_face_age, clf = build_model_and_evaluate(
-                                data = "face", 
+    accuracy_face_text_age, clf = build_model_and_evaluate(
+                                data = ["face","text"] 
                                 target = "age")
-    pickle.dump(clf, open("face_age.pkl", 'wb'))
+    pickle.dump(clf, open("face_text-age.pkl", 'wb'))
 
-    accuracy_face_gender, clf = build_model_and_evaluate(
-                                data = "face", 
+    accuracy_face_text_gender, clf = build_model_and_evaluate(
+                                data = ["face","text"] 
                                 target = "gender")
-    pickle.dump(clf, open("face_gender.pkl", 'wb'))
+    pickle.dump(clf, open("face_text-gender.pkl", 'wb'))
 
-    accuracy_text_age, clf = build_model_and_evaluate(
-                                data = "text", 
+    accuracy_face_relation_age, clf = build_model_and_evaluate(
+                                data = ["face", "relation"], 
                                 target = "age")
-    pickle.dump(clf, open("text_age.pkl", 'wb'))
+    pickle.dump(clf, open("face_relation-age.pkl", 'wb'))
 
-    accuracy_text_gender, clf = build_model_and_evaluate(
-                                data = "text", 
+    accuracy_face_relation_gender, clf = build_model_and_evaluate(
+                                data = ["face", "relation"], 
                                 target = "gender")
-    pickle.dump(clf, open("text_gender.pkl", 'wb'))
+    pickle.dump(clf, open("face_relation-gender.pkl", 'wb'))
 
-    accuracy_relation_age, clf = build_model_and_evaluate(
-                                data = "relation", 
+    accuracy_text_relation_age, clf = build_model_and_evaluate(
+                                data = ["text", "relation"], 
                                 target = "age")
-    pickle.dump(clf, open("relation_age.pkl", 'wb'))
+    pickle.dump(clf, open("text_relation-age.pkl", 'wb'))
 
-    accuracy_relation_gender, clf = build_model_and_evaluate(
-                                data = "relation", 
+    accuracy_text_relation_gender, clf = build_model_and_evaluate(
+                                data = ["text", "relation"], 
                                 target = "gender")
-    pickle.dump(clf, open("relation_gender.pkl", 'wb'))
+    pickle.dump(clf, open("text_relation-gender.pkl", 'wb'))
+
+
+    # Combining all three data sources to predict age and gender
+
+    accuracy_face_text_relation_age, clf = build_model_and_evaluate(
+                                data = ["face", "text", "relation"], 
+                                target = "age")
+    pickle.dump(clf, open("face_text_relation-age.pkl", 'wb'))
+
+    accuracy_face_text_relation_gender, clf = build_model_and_evaluate(
+                                data = ["face", "text", "relation"], 
+                                target = "gender")
+    pickle.dump(clf, open("face_text_relation-gender.pkl", 'wb'))
+
+
 
     ## Regression Tasks
 
-    rmse_text_personality, clf = build_model_and_evaluate_rms(
-                                data = "text") 
-    pickle.dump(clf, open("text_regression.pkl", 'wb'))
+    rmse_face_text_personality, clf = build_model_and_evaluate_rms(
+                                data = ["face", "text"]) 
+    pickle.dump(clf, open("face_text_regression.pkl", 'wb'))
 
-    rmse_face_personality, clf = build_model_and_evaluate_rms(
-                                data = "face") 
-    pickle.dump(clf, open("face_regression.pkl", 'wb'))
+    rmse_face_relation_personality, clf = build_model_and_evaluate_rms(
+                                data = ["face", "relation"]) 
+    pickle.dump(clf, open("face_relation_regression.pkl", 'wb'))
 
-    rmse_relation_personality, clf = build_model_and_evaluate_rms(
-                                data = "relation") 
-    pickle.dump(clf, open("relation_regression.pkl", 'wb'))
+    rmse_text_relation_personality, clf = build_model_and_evaluate_rms(
+                                data = ["text", "relation"]) 
+    pickle.dump(clf, open("face_text_regression.pkl", 'wb'))
+
+    # Combining all three data sources to predict prediction
+
+    rmse_face_text_relation_personality, clf = build_model_and_evaluate_rms(
+                                data = ["face", "text", "relation"]) 
+    pickle.dump(clf, open("face_text_relation_regression.pkl", 'wb'))
     
 
     

@@ -2,7 +2,9 @@
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklear.linear_model import SGDClassifier
-from xgboost import XGBClassifier
+from sklearn.multioutput import MultiOutputRegressor
+from xgboost import XGBClassifier, XGBRegressor
+import lightgbm
 
 import pandas as pd
 import pickle
@@ -62,19 +64,65 @@ def build_model_and_evaluate(data, target, classifier="XGB"):
     X, y = utils.extract_data(df_X, label=target)
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state = 2)
     
-    if clf == "XGB":
+    if classifier == "xgb":
         clf = XGBClassifier(n_estimators=200)
-    elif clf == "SVM":
+    elif classifier == "svm":
         clf = SGDClassifier()
     else:
         raise ValueError("Incorrect classifier")
 
     clf = clf.fit(X_train, y_train)
+    y_pred = clf.predict(X_test)
     score = accuracy_score(y_test, y_pred)
-
     return accuracy_score
 
+
+def build_model_and_evaluate_rms(data, regressor="XGB"):
+    model = Model1()
+    
+    if data == "face":
+        df_X = model.fetch_face_data()
+    elif data == "text":
+        df_X = model.fetch_text_data()
+    elif data == "relation":
+        df_X = model.fetch_relation_data()
+    else:
+        raise ValueError("Incorrect data format")
+
+    X, y = utils.extract_data(df_X, label="personality")
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state = 2)
+    
+    if regressor == "xgb":
+        reg = MultiOutputRegressor(XGBRegressor(n_estimators=200,
+                                                 max_depth=2, 
+                                                objective="reg:squarederror"))
+    elif regressor == "rf":
+        reg = MultiOutputRegressor(RandomForestRegressor(n_estimators=100))
+
+    elif regressor == "lasso":
+        reg = ""
+
+    elif regressor == "lightgbm":
+        reg = MultiOutputRegressor(lightgbm.LGBMRegressor(objective = "regression")) 
+    else:
+        raise ValueError("Incorrect classifier")
+
+    reg = reg.fit(X_train, y_train)
+    y_pred = reg.predict(X_test)
+    
+    # Calculating RMSE for all personality
+    rmse = []
+    for i,value in enumerate(utils.regressor_labels):
+        rmse.append(sqrt(mean_squared_error(y_pred[:,i], y_test[value])))
+
+    return rmse
+
+
+
 if __name__ == "__main__":
+
+    ## Classification Tasks
+
     accuracy_face_age, clf = build_model_and_evaluate(
                                 data = "face", 
                                 target = "age")
@@ -105,6 +153,18 @@ if __name__ == "__main__":
                                 target = "gender")
     pickle.dump(clf, open("relation_gender.pkl", 'wb'))
 
+    ## Regression Tasks
+    rmse_text_personality, clf = build_model_and_evaluate_rms(
+                                data = "text") 
+    pickle.dump(clf, open("text_regression.pkl", 'wb'))
+
+    rmse_face_personality, clf = build_model_and_evaluate_rms(
+                                data = "face") 
+    pickle.dump(clf, open("face_regression.pkl", 'wb'))
+
+    rmse_relation_personality, clf = build_model_and_evaluate_rms(
+                                data = "relation") 
+    pickle.dump(clf, open("relation_regression.pkl", 'wb'))
     
 
     

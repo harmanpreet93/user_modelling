@@ -8,7 +8,6 @@ __status__ = "Class Project"
 
 import pandas as pd
 from sklearn.feature_selection import SelectKBest, chi2, f_regression
-from sklearn.preprocessing import MinMaxScaler
 
 project_path = "data"
 regressor_labels = ['ope', 'con', 'ext', 'agr', 'neu']
@@ -88,13 +87,6 @@ def extract_data(df, label):
         return clean_dataframe(df), df['gender']
     elif label == "personality":
         return clean_dataframe(df), df.loc[:, regressor_labels]
-
-
-def MinMaxScaleDataframe(df):
-    x = df.values   # returns a numpy array
-    min_max_scaler = MinMaxScaler()
-    x_scaled = min_max_scaler.fit_transform(x)
-    return pd.DataFrame(x_scaled, columns=df.columns)
 
 
 def selectKFeatures(df, y, k, regression=False):

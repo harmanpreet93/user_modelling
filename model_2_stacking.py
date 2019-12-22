@@ -15,7 +15,7 @@ from typing import List
 class Model2EarlyFusion:
     '''
     This class is used to code the second approach in the presentation
-    of where we fuse data sources together
+    of where we fuse data sources together and compare their results.
     '''
 
     def __init__(self):
@@ -92,20 +92,9 @@ def build_model_and_evaluate_rms(data, regressor="XGB"):
     X, y = utils.extract_data(df_X, label="personality")
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state = 2)
     
-    if regressor == "xgb":
-        reg = MultiOutputRegressor(XGBRegressor(n_estimators=200,
-                                                 max_depth=2, 
-                                                objective="reg:squarederror"))
-    elif regressor == "rf":
-        reg = MultiOutputRegressor(RandomForestRegressor(n_estimators=100))
-
-    elif regressor == "lasso":
-        reg = ""
-
-    elif regressor == "lightgbm":
-        reg = MultiOutputRegressor(lightgbm.LGBMRegressor(objective = "regression")) 
-    else:
-        raise ValueError("Incorrect classifier")
+    reg = MultiOutputRegressor(XGBRegressor(n_estimators=200,
+                                            max_depth=2, 
+                                            objective="reg:squarederror"))
 
     reg = reg.fit(X_train, y_train)
     y_pred = reg.predict(X_test)
@@ -124,12 +113,12 @@ if __name__ == "__main__":
     ## Classification Tasks for combined datasets
 
     accuracy_face_text_age, clf = build_model_and_evaluate(
-                                data = ["face","text"] 
+                                data = ["face","text"],  
                                 target = "age")
     pickle.dump(clf, open("face_text-age.pkl", 'wb'))
 
     accuracy_face_text_gender, clf = build_model_and_evaluate(
-                                data = ["face","text"] 
+                                data = ["face","text"], 
                                 target = "gender")
     pickle.dump(clf, open("face_text-gender.pkl", 'wb'))
 

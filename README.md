@@ -8,7 +8,7 @@ All the below features were normalized using Min Max Scaling. We also used Selec
 2. Text Data (Concatenated the liwc and nrc data together after selecting the best features among them)
 3. Relation Data (got node2vec embeddings for pages with more than 5 users, and averaged the page embeddings for each user), we could also use user embeddings but then we would have to retrain the  graph while testing which wasnt feasible.
 
-X = pd.concat[face, text, relation_n2v]
+`X = pd.concat[face, text, relation_n2v]`
 
 ### Gender Classification:
 All the above three data sources were concatenated and trained using XGBoost to predict gender.
@@ -21,6 +21,6 @@ All the above three data sources were concatenated alongwith the prediction for 
 We used regression chaining where the prediction for one personality trait is again fed back and used for predicting the another personality trait using XGBRegressor. 
 The below order for chaining was selected after multiple experiments   
 [openness, ]
+  
 
-
-> python model_final.py
+`python model_final.py`

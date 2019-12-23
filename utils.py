@@ -2,14 +2,15 @@
 __author__ = "Harmanpreet Singh, Akshay Singh Rana, Himanshu Arora"
 __license__ = "GPL"
 __version__ = "1.0.1"
-__status__ = "Class Project"
+__status__ = "Project"
 """
-
 
 import pandas as pd
 from sklearn.feature_selection import SelectKBest, chi2, f_regression
+from sklearn.preprocessing import MinMaxScaler
 
-project_path = "data"
+
+project_path = "data/"
 regressor_labels = ['ope', 'con', 'ext', 'agr', 'neu']
 df_output = pd.read_csv(project_path + "Train/Profile/Profile.csv")
 
@@ -28,7 +29,7 @@ def buckets(x):
 def load_data_from_csv(dtype, path = "./"):
     global df_output
     df_output = pd.read_csv(path + "Profile/Profile.csv")
-    
+
     if dtype == "face":
         df_face = pd.read_csv(path + "Image/oxford.csv")
         df_face = pd.merge(df_face, df_output, left_on="userId", right_on="userid", how="outer")
@@ -50,7 +51,7 @@ def load_data_from_csv(dtype, path = "./"):
 
         df_text = pd.merge(df_liwc, df_output, left_on="userId", right_on="userid")
         return df_text, df_output
-    
+
     elif dtype == "relation":
         df_relation = pd.read_csv(path + "Relation/Relation.csv")
 
@@ -59,7 +60,7 @@ def load_data_from_csv(dtype, path = "./"):
 
     else:
         raise ValueError("Invalid dtype - Should be one of (face, text, relation)")
-    
+
 
 # clean irrelevant columns in data
 def clean_dataframe(df):
@@ -81,6 +82,7 @@ def get_transformed_relation(df_relation, min_likes):
 
 # Extract outputs from merged values
 def extract_data(df, label):
+    df = df.set_index('userId').sort_index()
     if label == "age":
         return clean_dataframe(df), df['age'].apply(buckets)
     elif label == "gender":
@@ -88,6 +90,11 @@ def extract_data(df, label):
     elif label == "personality":
         return clean_dataframe(df), df.loc[:, regressor_labels]
 
+def MinMaxScaleDataframe(df):
+    x = df.values #returns a numpy array
+    min_max_scaler = MinMaxScaler()
+    x_scaled = min_max_scaler.fit_transform(x)
+    return pd.DataFrame(x_scaled, columns=df.columns)
 
 def selectKFeatures(df, y, k, regression=False):
     if regression:

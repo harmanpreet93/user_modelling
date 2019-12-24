@@ -4,6 +4,10 @@ from sklearn.linear_model import SGDClassifier
 from sklearn.multioutput import MultiOutputRegressor, RegressorChain
 from xgboost import XGBClassifier, XGBRegressor
 from preprocessing import preprocess_data as preprocess
+from sklearn.metrics import mean_squared_error
+from math import sqrt
+
+
 
 import lightgbm
 
@@ -106,6 +110,7 @@ def build_model_and_evaluate_rms(prev_pred=None):
     y_pred = reg.predict(X_test)
     
     # Calculating RMSE for all personality
+    # order: 
     rmse = []
     for i,value in enumerate(utils.regressor_labels):
         rmse.append(sqrt(mean_squared_error(y_pred[:,i], y_test[value])))
@@ -114,7 +119,7 @@ def build_model_and_evaluate_rms(prev_pred=None):
 
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  
 
     accuracy_gender, clf, y_gender = build_model_and_evaluate(target = "gender")
     pickle.dump(clf, open("model_gender.pkl", 'wb'))

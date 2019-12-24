@@ -22,11 +22,11 @@ class Model2EarlyFusion:
         pass
 
     def fetch_face_data(self):
-        df_face, df_output = utils.load_data_from_csv(dtype="face")
+        df_face, _ = utils.load_data_from_csv(dtype="face")
         return df_face
     
     def fetch_text_data(self):
-        df_text, df_output = utils.load_data_from_csv(dtype="text")
+        df_text, _ = utils.load_data_from_csv(dtype="text")
         return df_text
     
     def fetch_relation_data(self):

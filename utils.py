@@ -86,7 +86,7 @@ def get_transformed_relation(df_relation, min_likes):
 def extract_data(df, label, type):
   # print(df.columns)
   if type=="face":
-    df = df.set_index('userId').sort_index()
+    df = df.set_index('userid').sort_index()
   elif type=="text":
     df = df.set_index('userid').sort_index()
   df = df.reset_index(drop=True)

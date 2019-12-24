@@ -7,17 +7,12 @@ from preprocessing import preprocess_data as preprocess
 from sklearn.metrics import mean_squared_error
 from math import sqrt
 
-
-
-import lightgbm
-
 import pandas as pd
 import pickle
 import preprocessing
 import utils
 
 from typing import List
-
 
 class Model3:
   '''
@@ -28,15 +23,17 @@ class Model3:
   def __init__(self):
     pass
 
-  def get_face_data(self):
+  def get_face_data(self, target):
     df_face, _ = utils.load_data_from_csv(dtype="face")
-    df_face = preprocess(df_face, dtype="face")
-    return df_face
+	df_face, y = utils.extract_data(df_face, target)
+    # df_face = preprocess(df_face, dtype="face")
+    return df_face, y
 
-  def get_text_data(self):
+  def get_text_data(self, target):
     df_text, _ = utils.load_data_from_csv(dtype="text")
-    df_text = preprocess(df_text, dtype="text")
-    return df_text
+	df_text, y = utils.extract_data(df_text, target)
+    # df_text = preprocess(df_text, dtype="text")
+    return df_text, y
 
   def get_relation_data(self):
     df_relation, df_output = utils.load_data_from_csv(dtype="relation")
@@ -61,23 +58,23 @@ class Model3:
     df_n2v = ""
     return df_n2v
 
-  def combined_features(self):
-    X_face = self.get_face_data()
-    X_text = self.get_text_data()
+  def combined_features(self, target):
+    X_face, y = self.get_face_data(target)
+    X_text, y = self.get_text_data(target)
     X_n2v = self.get_node2vec_data()
-    X_combined = pd.concat([X_face, X_text, X_n2v])
-    return X_combined
+    X_combined = pd.concat([X_face, X_text], sort=True)
+    return X_combined, y
 
 
-def build_model_and_evaluate(target: str, prev_pred=None):
+def build_model_and_evaluate(target, prev_pred=None):
   model = Model3()
-  X_combined = model.combined_features()
+  X_combined, y= model.combined_features(target)
 
   # combining the prediction of previous tasks to predict another task
   if prev_pred is not None:
     X_combined = pd.concat([X_combined, prev_pred])
 
-  X, y = utils.extract_data(X_combined, label=target)
+#   X, y = utils.extract_data(X_combined, label=target)
   X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=2)
 
   clf = XGBClassifier(n_estimators=200)
@@ -87,7 +84,7 @@ def build_model_and_evaluate(target: str, prev_pred=None):
   y_pred_train = clf.predict(X_train)
 
   score = accuracy_score(y_test, y_pred_test)
-  return accuracy_score, clf, y_pred_train
+  return score, clf, y_pred_train
 
 
 def build_model_and_evaluate_rms(prev_pred=None):
@@ -101,7 +98,7 @@ def build_model_and_evaluate_rms(prev_pred=None):
     X, y = utils.extract_data(X_combined, label="personality")
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state = 2)
     
-    reg = RegressorChain(XGBRegressor(n_estimators=200,
+    reg = RegressorChain(XGBRegressor(n_estimators=2,
                                         max_depth=2, 
                                         objective="reg:squarederror"),
                                         
@@ -118,38 +115,17 @@ def build_model_and_evaluate_rms(prev_pred=None):
 
     return rmse, reg
 
-  # combining the prediction of previous tasks to predict another task
-  if prev_pred is not None:
-    X_combined = pd.concat([X_combined, prev_pred])
-
-  X, y = utils.extract_data(X_combined, label="personality")
-  X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=2)
-
-  reg = RegressorChain(XGBRegressor(n_estimators=200,
-                                    max_depth=2,
-                                    objective="reg:squarederror"),
-
-                       order=[1, 2, 3, 4, 5])
-
-  reg = reg.fit(X_train, y_train)
-  y_pred = reg.predict(X_test)
-
-  # Calculating RMSE for all personality
-  rmse = []
-  for i, value in enumerate(utils.regressor_labels):
-    rmse.append(sqrt(mean_squared_error(y_pred[:, i], y_test[value])))
-
-  return rmse, reg
-
 
 if __name__ == "__main__":
-  accuracy_gender, clf, y_gender = build_model_and_evaluate(target="gender")
-  pickle.dump(clf, open("model_gender.pkl", 'wb'))
+	accuracy_gender, clf, y_gender = build_model_and_evaluate(target="gender")
+	print("Accuracy for gender", accuracy_gender)
+	pickle.dump(clf, open("model_gender.pkl", 'wb'))
 
-  accuracy_age, clf, y_age = build_model_and_evaluate(target="age", prev_pred=y_gender)
-  pickle.dump(clf, open("model_age.pkl", 'wb'))
+	accuracy_age, clf, y_age = build_model_and_evaluate(target="age", prev_pred=None)
+	print("Accuracy for age", accuracy_age)
+	pickle.dump(clf, open("model_age.pkl", 'wb'))
 
-  rmse_personality, reg = build_model_and_evaluate_rms(prev_pred=pd.concat[y_gender, y_age])
-  pickle.dump(reg, open("model_personality.pkl", 'wb'))
+#   rmse_personality, reg = build_model_and_evaluate_rms(prev_pred=pd.concat[y_gender, y_age])
+#   pickle.dump(reg, open("model_personality.pkl", 'wb'))
 
   # We can run this multiple times where the previous predictions are continously fed back to improve predictions but we didnt notice significant improvements.

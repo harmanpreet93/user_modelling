@@ -31,16 +31,17 @@ def load_data_from_csv(dtype, path=project_path):
 
   if dtype == "face":
     df_face = pd.read_csv(path + "Image/oxford.csv")
-
+    
     # Dropping duplicate face_ids
     df_face.drop_duplicates(subset="userId", keep="first", inplace=True)
     
     df_face = pd.merge(df_face, df_output, left_on="userId", right_on="userid", how="outer")
 
+
     # Filling mean values for users with no face
     df_face.fillna(df_face.mean(), inplace=True)
 
-    return df_face.set_index('userId').sort_index(), df_output
+    return df_face, df_output
 
   elif dtype == "text":
     df_liwc = pd.read_csv(path + "Text/liwc.csv")
@@ -50,7 +51,7 @@ def load_data_from_csv(dtype, path=project_path):
     df_liwc = pd.merge(df_liwc, df_nrc, left_on="userId", right_on="userId")
 
     df_text = pd.merge(df_liwc, df_output, left_on="userId", right_on="userid")
-    return df_text.set_index('userId').sort_index(), df_output
+    return df_text, df_output
 
   elif dtype == "relation":
     df_relation = pd.read_csv(path + "Relation/Relation.csv")
@@ -82,8 +83,13 @@ def get_transformed_relation(df_relation, min_likes):
 
 
 # Extract outputs from merged values
-def extract_data(df, label):
-  df = df.set_index('userId').sort_index()
+def extract_data(df, label, type):
+  # print(df.columns)
+  if type=="face":
+    df = df.set_index('userId').sort_index()
+  elif type=="text":
+    df = df.set_index('userid').sort_index()
+  df = df.reset_index(drop=True)
   if label == "age":
     return clean_dataframe(df), df['age'].apply(buckets)
   elif label == "gender":
